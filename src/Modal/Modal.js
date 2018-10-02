@@ -26,7 +26,7 @@ class Modal extends Component {
   static propTypes = {
     visible: PropTypes.bool.isRequired,
 
-    onClose: PropTypes.func.isRequired,
+    onClose: PropTypes.func,
 
     // 蒙版
     maskOpacity: PropTypes.number,
@@ -56,7 +56,7 @@ class Modal extends Component {
     marginTop: 0,
     marginBottom: 0,
     marginHorizontal: 0,
-    borderRadius: 4
+    borderRadius: 0
   }
 
   constructor(props){
@@ -117,7 +117,8 @@ class Modal extends Component {
       marginTop, 
       marginBottom, 
       borderRadius, 
-      contentFlex 
+      contentFlex,
+      marginHorizontal
     } = this.props
 
     const { 
@@ -125,7 +126,6 @@ class Modal extends Component {
     } = this.state
 
     const behavior = Platform.OS === 'ios' ? 'position' : null
-    
     return (
       <KeyboardAvoidingView 
         behavior={behavior}
@@ -151,6 +151,7 @@ class Modal extends Component {
             flex: contentFlex,
             marginTop: alignItems === 'flex-start' ? marginTop : null,
             marginBottom: alignItems === 'flex-end' ? marginBottom : null,
+            marginHorizontal,
             opacity: this.contentAnimatedValue.interpolate({
               inputRange: [0, 1],
               outputRange: [0.3, 1]
@@ -256,7 +257,7 @@ class Modal extends Component {
     // 通过onClose方法更新props.visible来达到关闭的效果
     const { maskClosable, onClose } = this.props
 
-    maskClosable && onClose()
+    maskClosable && onClose && onClose()
   }
 
   render(){

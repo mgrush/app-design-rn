@@ -15,7 +15,7 @@ import {
 
 import PropTypes from 'prop-types'
 
-import Modal from './index'
+import Modal from './Modal'
 
 const buttonShape = {
   name: PropTypes.string,
@@ -31,27 +31,32 @@ class Dialog extends Component {
     cancelButton: PropTypes.shape(buttonShape).isRequired,
     confirmButton: PropTypes.shape(buttonShape).isRequired,
 
-    contentFlex: PropTypes.number
+    // 通过Flex和横向外间距共同决定宽度
+    contentFlex: PropTypes.number,
+    marginHorizontal: PropTypes.number
   }
 
   static defaultProps = {
-    contentFlex: 0.7
+    contentFlex: 0.7,
+    marginHorizontal: 0
   }
 
   render(){
     const {
       visible,
       title,
-      contentFlex
+      contentFlex,
+      marginHorizontal
     } = this.props
 
     return (
       <Modal 
+        borderRadius={6}
         visible={visible}
         maskClosable={false}
         alignItems={'center'}
-        borderRadius={6}
-        onClose={() => {}}>
+        contentFlex={contentFlex}
+        marginHorizontal={marginHorizontal}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{title}</Text>
         </View>
@@ -95,7 +100,7 @@ class FooterButton extends Component {
   static propTypes = {
     name: PropTypes.string.isRequired,
     onPress: PropTypes.func.isRequired,
-    type: PropTypes.oneOf(['cancel','confirm', 'normal']).isRequired
+    type: PropTypes.oneOf(['cancel','confirm']).isRequired
   }
 
   render(){
