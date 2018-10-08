@@ -34,6 +34,7 @@ class Modal extends Component {
 
     // Content的弹性宽度
     contentFlex: PropTypes.number,
+    contentContainerStyle: View.propTypes.style,
 
     // Content在Column方向上的排版
     alignItems: PropTypes.oneOf(['center', 'flex-start', 'flex-end']),
@@ -116,6 +117,7 @@ class Modal extends Component {
       marginBottom, 
       borderRadius, 
       contentFlex,
+      contentContainerStyle,
       marginHorizontal
     } = this.props
 
@@ -145,6 +147,7 @@ class Modal extends Component {
 
         <Animated.View style={[
           styles.content,
+          contentContainerStyle,
           {
             borderRadius,
             flex: contentFlex,
@@ -168,7 +171,7 @@ class Modal extends Component {
             }]
           }
         ]} onLayout={this.measureLayout}>
-          <View style={styles.contentContainer}>
+          <View style={styles.innerContainer}>
             {this.props.children}
           </View>
         </Animated.View>
@@ -293,7 +296,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF'
   },
 
-  contentContainer: {
+  innerContainer: {
     flex: 1                  
   }
 })
