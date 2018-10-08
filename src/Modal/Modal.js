@@ -78,14 +78,12 @@ class Modal extends Component {
   }
 
   componentDidMount(){
-    RootView.getInstance().append(this.getModal()).then((id) => {
-      this.modalId = id    
-
-      // 如果初始化状态下visible=true，则调用动画显示Modal
-      if(this.props.visible){
+    if(this.props.visible){
+      RootView.getInstance().append(this.getModal()).then((id) => {
+        this.modalId = id    
         this.show()
-      }
-    })
+      })
+    }
   }
 
   componentDidUpdate(){
@@ -126,6 +124,7 @@ class Modal extends Component {
     } = this.state
 
     const behavior = Platform.OS === 'ios' ? 'position' : null
+
     return (
       <KeyboardAvoidingView 
         behavior={behavior}
