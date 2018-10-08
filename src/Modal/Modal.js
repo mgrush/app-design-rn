@@ -205,11 +205,13 @@ class Modal extends Component {
       Animated.timing(this.maskAnimatedValue, {
         toValue: 1,
         duration: 300,
+        useNativeDriver: true,
         easing: Easing.easeIn
       }),
       Animated.timing(this.contentAnimatedValue, {
         toValue: 1,
         duration: 300,
+        useNativeDriver: true,
         easing: Easing.easeIn
       })
     ]).start(() => {
@@ -237,11 +239,13 @@ class Modal extends Component {
       Animated.timing(this.maskAnimatedValue, {
         toValue: 0,
         duration: 200,
+        useNativeDriver: true,
         easing: Easing.easeOut
       }),
       Animated.timing(this.contentAnimatedValue, {
         toValue: 0,
         duration: 200,
+        useNativeDriver: true,
         easing: Easing.easeOut
       })
     ]).start(() => {

@@ -97,7 +97,10 @@ class HeaderButton extends Component {
     } = this.props
 
     return (
-      <TouchableOpacity activeOpacity={0.5} style={styles.buttonContainer}>
+      <TouchableOpacity 
+        onPress={onPress}
+        activeOpacity={0.5} 
+        style={styles.buttonContainer}>
         <Text style={[
           styles.buttonName,
           'confirm' === type && styles.confirmButtonName
