@@ -24,9 +24,19 @@ const buttonShape = {
 
 class Popup extends Component {
   static propTypes = {
+    /**
+     * 是否显示底部弹窗
+     **/
     visible: PropTypes.bool.isRequired,
-    title: PropTypes.string,
+
+    /**
+     * 弹窗标题，通常为字符串，但是也支持传入Element自定义节点
+     **/
+    title: PropTypes.node,
     
+    /**
+     * 左侧的取消按钮以及右侧的确认按钮
+     **/
     cancelButton: PropTypes.shape(buttonShape),
     confirmButton: PropTypes.shape(buttonShape)
   }
@@ -41,20 +51,25 @@ class Popup extends Component {
 
     return (
       <Modal
-        contentFlex={1}
         visible={visible}
-        alignItems={'flex-end'}>
+        alignContent='flex-end'
+        contentContainerStyle={styles.container} {...this.props}>
+
         <View style={styles.header}>
           {cancelButton && (
             <HeaderButton type='cancel' {...this.getButtonProps('cancel')} />
           )}
-          {title && (
+
+          {title && (React.isValidElement(title) ? title : (
             <Text style={styles.title}>{title}</Text>
-          )}
+          ))}
+
           {confirmButton && (
             <HeaderButton type='confirm' {...this.getButtonProps('confirm')} />
           )}
         </View>
+
+        {this.props.children}
       </Modal>
     )
   }
@@ -111,6 +126,11 @@ class HeaderButton extends Component {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    borderRadius: 0
+  },
+
   header: {
     height: 48,
     flexDirection: 'row',
