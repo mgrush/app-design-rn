@@ -49,6 +49,8 @@ class Dialog extends Component {
     const {
       title,
       visible,
+      cancelButton,
+      confirmButton,
       contentContainerStyle
     } = this.props
 
@@ -69,8 +71,12 @@ class Dialog extends Component {
         </View>
 
         <View style={styles.footer}>
-          <FooterButton type='cancel' {...this.getButtonProps('cancel')} />
-          <FooterButton type='confirm' {...this.getButtonProps('confirm')} />
+          {cancelButton && (
+            <FooterButton type='cancel' {...this.getButtonProps('cancel')} />
+          )}
+          {confirmButton && (
+            <FooterButton type='confirm' {...this.getButtonProps('confirm')} />
+          )}
         </View>
       </Modal>
     )   
@@ -151,10 +157,12 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    flex: 0.5,
-    flexDirection: 'row',
+    flex: 1,
+    height: 50,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderColor: '#8C8C8C',
+    borderTopWidth: StyleSheet.hairlineWidth
   },
 
   confirmButton: {
@@ -173,10 +181,7 @@ const styles = StyleSheet.create({
   },
 
   footer: {
-    height: 50,
-    borderColor: '#8C8C8C',
-    flexDirection: 'row',
-    borderTopWidth: StyleSheet.hairlineWidth
+    flexDirection: 'row'
   }
 })
 
