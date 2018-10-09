@@ -59,9 +59,9 @@ class Modal extends Component {
     onRequestClose: (Platform.isTVOS || Platform.OS === 'android') ?PropTypes.func.isRequired : PropTypes.func,
 
     /**
-     * 自定义属性：蒙版点击是否可以关闭
+     * 自定义属性：如果设置了该属性，则蒙版可点击关闭，并通过该方法修改传入的props.visible的值
      **/
-    closable: PropTypes.bool,
+    onClose: PropTypes.func,
 
     /**
      * 自定义属性：控制内容容器在Y轴的显示位置，可选类型为：flex-start（顶部显示）、center（居中显示）、flex-end（底部显示）
@@ -76,7 +76,6 @@ class Modal extends Component {
 
   static defaultProps = {
     visible: false,
-    closable: true,
     transparent: false,
     needAnimation: true,
     alignContent: 'center'
@@ -162,7 +161,7 @@ class Modal extends Component {
           style={[styles.content, contentContainerStyle, {
             opacity: this.animation
           }, this.getTransformByNeedAnimation()]}>
-        
+          {this.props.children}       
         </Animated.View>
       </KeyboardAvoidingView>
     )
@@ -206,7 +205,7 @@ class Modal extends Component {
   }
 
   show = () => {
-    if(this.isAnimating || this.isVisible){
+    if(this.isAnimating){
       return
     }
 
@@ -221,7 +220,6 @@ class Modal extends Component {
         useNativeDriver: true,
         easing: Easing.easeIn
       }).start(() => {
-        this.isVisible = true
         this.isAnimating = false
         this.showAnimation = null
 
@@ -231,7 +229,7 @@ class Modal extends Component {
   }
 
   hide = () => {
-    if(this.isAnimating || !this.isVisible){
+    if(this.isAnimating){
       return
     }
 
@@ -244,7 +242,6 @@ class Modal extends Component {
       easing: Easing.easeOut
     }).start(() => {
       RootView.getInstance().remove(this.modalId).then(() => {
-        this.isVisible = false
         this.isAnimating = false
         this.hideAnimation = null
 
@@ -254,8 +251,8 @@ class Modal extends Component {
   }
 
   onMaskPress = () => {
-    if(this.props.closable){
-      this.hide()
+    if( this.props.onClose){
+      this.props.onClose()
     }
   }
 
