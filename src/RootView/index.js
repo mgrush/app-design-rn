@@ -50,8 +50,10 @@ class RootView extends Component {
         return resolve()
       }
 
+      layerList.splice(matchIndex, 1)
+
       this.setState({
-        layerList: layerList.splice(matchIndex, 1)
+        layerList
       }, () => {
         resolve() 
       })
