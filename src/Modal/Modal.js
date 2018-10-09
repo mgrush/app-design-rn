@@ -138,6 +138,7 @@ class Modal extends Component {
     const {
       transparent,
       alignContent,
+      needAnimation,
       contentContainerStyle
     } = this.props
 
@@ -151,16 +152,12 @@ class Modal extends Component {
         <TouchableWithoutFeedback onPress={this.onMaskPress}>
           <Animated.View style={[styles.mask, transparent && {
             backgroundColor: 'rgba(0, 0, 0, 0)'
-          }, {
-            opacity: this.animation
-          }]} />
+          }, this.getMaskAnimation()]} />
         </TouchableWithoutFeedback>
 
         <Animated.View 
           onLayout={this.measureLayout}
-          style={[styles.content, contentContainerStyle, {
-            opacity: this.animation
-          }, this.getTransformByNeedAnimation()]}>
+          style={[styles.content, contentContainerStyle, this.getTransformByNeedAnimation()]} >
           {this.props.children}       
         </Animated.View>
       </KeyboardAvoidingView>
@@ -179,6 +176,16 @@ class Modal extends Component {
     }
   }
 
+  getMaskAnimation(){
+    const {
+      needAnimation
+    } = this.props
+
+    return {
+      opacity: needAnimation ? this.animation : 1
+    }
+  }
+
   // 根据是否需要动画，返回相关的动画样式
   getTransformByNeedAnimation(){
     const {
@@ -190,7 +197,10 @@ class Modal extends Component {
       contentHeight
     } = this.state
 
-    return needAnimation && {
+    return !needAnimation ? {
+      opacity: 1
+    } : {
+      opacity: this.animation,
       transform: [{
         scale: alignContent !== 'center' ? 1 : this.animation
       }, {
@@ -201,53 +211,71 @@ class Modal extends Component {
           ]
         })
       }]
-    }
+    } 
   }
 
   show = () => {
+    const {
+      needAnimation
+    } = this.props
+
     if(this.isAnimating){
       return
     }
 
-    this.isAnimating = true
+    this.isAnimating = needAnimation
 
     RootView.getInstance().append(this.getModal()).then(id => {
       this.modalId = id
 
-      this.showAnimation = Animated.timing(this.animation, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-        easing: Easing.easeIn
-      }).start(() => {
-        this.isAnimating = false
-        this.showAnimation = null
+      if(needAnimation){
+        this.showAnimation = Animated.timing(this.animation, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.easeIn
+        }).start(() => {
+          this.isAnimating = false
+          this.showAnimation = null
 
+          this.props.onShow && this.props.onShow()
+        })
+      }else {
         this.props.onShow && this.props.onShow()
-      })
+      }
     })
   }
 
   hide = () => {
+    const {
+      needAnimation
+    } = this.props
+
     if(this.isAnimating){
       return
     }
 
-    this.isAnimating = true
+    this.isAnimating = needAnimation
 
-    this.hideAnimation = Animated.timing(this.animation, {
-      toValue: 0,
-      duration: 200,
-      useNativeDriver: true,
-      easing: Easing.easeOut
-    }).start(() => {
+    if(needAnimation){
+      this.hideAnimation = Animated.timing(this.animation, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+        easing: Easing.easeOut
+      }).start(() => {
+        RootView.getInstance().remove(this.modalId).then(() => {
+          this.isAnimating = false
+          this.hideAnimation = null
+
+          this.props.onDismiss && this.props.onDismiss()
+        })  
+      })
+    }else {
       RootView.getInstance().remove(this.modalId).then(() => {
-        this.isAnimating = false
-        this.hideAnimation = null
-
         this.props.onDismiss && this.props.onDismiss()
       })  
-    })
+    }
   }
 
   onMaskPress = () => {
