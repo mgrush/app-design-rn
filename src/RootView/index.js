@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 
 var instance = null
+var layerId = 0
 
 class RootView extends Component {
   static getInstance = () => {
@@ -28,15 +29,14 @@ class RootView extends Component {
   append = (component) => {
     return new Promise((resolve) => {
       let layerList = this.state.layerList
-      let length = layerList.length
 
       this.setState({
         layerList: layerList.concat([{
-          id: length + 1,
+          id: ++layerId,
           component
         }])
       }, () => {
-        resolve(length + 1)
+        resolve(layerId)
       })
     }) 
   }
