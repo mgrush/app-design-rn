@@ -158,7 +158,9 @@ class Modal extends Component {
         <Animated.View 
           onLayout={this.measureLayout}
           style={[styles.content, contentContainerStyle, this.getTransformByNeedAnimation()]} >
-          {this.props.children}       
+          <View style={styles.innerContent}>
+            {this.props.children}
+          </View>
         </Animated.View>
       </KeyboardAvoidingView>
     )
@@ -315,6 +317,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     flexDirection: 'row',
     backgroundColor: '#FFF'
+  },
+
+  innerContent: {
+    flex: 1              
   }
 })
 
