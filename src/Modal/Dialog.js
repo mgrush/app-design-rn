@@ -36,8 +36,8 @@ class Dialog extends Component {
     /**
      * 固定命名弹窗按钮为取消按钮和确认按钮，用户可以灵活调整显示的文案，但是必须设置点击事件处理函数
      **/
-    cancelButton: PropTypes.shape(buttonShape).isRequired,
-    confirmButton: PropTypes.shape(buttonShape).isRequired,
+    cancelButton: PropTypes.shape(buttonShape),
+    confirmButton: PropTypes.shape(buttonShape),
 
     /**
      * 内容显示容器自身的样式设置
