@@ -46,7 +46,9 @@ class Modal extends Component {
     // Content在水平方向上与屏幕两边的距离
     marginHorizontal: PropTypes.number,
 
-    borderRadius: PropTypes.number
+    borderRadius: PropTypes.number,
+
+    animationType: PropTypes.oneOf(['none', 'fade'])
   }
 
   static defaultProps = {
@@ -57,7 +59,8 @@ class Modal extends Component {
     marginTop: 0,
     marginBottom: 0,
     marginHorizontal: 0,
-    borderRadius: 0
+    borderRadius: 0,
+    animationType: 'fade'
   }
 
   constructor(props){
