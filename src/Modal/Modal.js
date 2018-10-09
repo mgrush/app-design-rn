@@ -72,18 +72,13 @@ class Modal extends Component {
     this.contentAnimatedValue = new Animated.Value(0)
   }
 
+  componentDidMount(){
+    this.props.visible && this.show()
+  }
+
   componentWillReceiveProps(nextProps){
     if(nextProps.visible !== this.props.visible){
       nextProps.visible ? this.show() : this.hide()
-    }
-  }
-
-  componentDidMount(){
-    if(this.props.visible){
-      RootView.getInstance().append(this.getModal()).then((id) => {
-        this.modalId = id    
-        this.show()
-      })
     }
   }
 
@@ -203,25 +198,29 @@ class Modal extends Component {
       isAnimating: true    
     })
 
-    this.showAnimation = Animated.parallel([
-      Animated.timing(this.maskAnimatedValue, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-        easing: Easing.easeIn
-      }),
-      Animated.timing(this.contentAnimatedValue, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-        easing: Easing.easeIn
-      })
-    ]).start(() => {
-      this.setState({
-        isAnimating: false    
-      })
+    RootView.getInstance().append(this.getModal()).then((id) => {
+      this.modalId = id    
+    }).then(() => {
+      this.showAnimation = Animated.parallel([
+        Animated.timing(this.maskAnimatedValue, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.easeIn
+        }),
+        Animated.timing(this.contentAnimatedValue, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.easeIn
+        })
+      ]).start(() => {
+        this.setState({
+          isAnimating: false    
+        })
 
-      this.showAnimation = null
+        this.showAnimation = null
+      })
     })
   }
 
@@ -251,11 +250,13 @@ class Modal extends Component {
         easing: Easing.easeOut
       })
     ]).start(() => {
-      this.setState({
-        isAnimating: false
-      })
+      RootView.getInstance().remove(this.modalId).then(() => {
+        this.setState({
+          isAnimating: false
+        })
 
-      this.hideAnimation = null
+        this.hideAnimation = null
+      })
     })
   }
 
