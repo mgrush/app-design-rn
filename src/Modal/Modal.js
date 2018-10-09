@@ -1,82 +1,106 @@
+/**
+ * Modal 组件是一种简单的覆盖在其他视图之上显示内容的方式。ReactNative官方推出的Modal组件因为存在以下的一些问题：
+ *
+ * 1. 在Android客户端中，经常性会出现因为原生Modal的底层依赖问题导致App产生Crash；
+ * 2. 出现Crash的时候，因为涉及到Native底层的实现，解决起来难度较大，且需要依赖客户端发布新包才能解决。
+ *
+ * 所以，考虑通过纯JS的手段实现一个性能已经稳定性都比较可靠的新的Modal组件。
+ **/
+
 import React, {
   Component
 } from 'react'
 
 import {
   View,
-  StyleSheet,
+  Platform,
   Animated,
   Easing,
-  Dimensions,
-  Platform,
+  BackHandler,
+  StyleSheet,
   KeyboardAvoidingView,
   TouchableWithoutFeedback
 } from 'react-native'
 
 import PropTypes from 'prop-types'
-
 import RootView from '../RootView'
-
-const {
-  width: winWidth,
-  height: winHeight
-} = Dimensions.get('window')
 
 class Modal extends Component {
   static propTypes = {
+    /**
+     * 是否显示弹窗，在不显示的时候，Dom树上将不会渲染该节点
+     * 当该属性发生变化的时候，可触发显示或者隐藏的动画，并调用相关回调onShow和onDismiss
+     **/
     visible: PropTypes.bool.isRequired,
 
-    onClose: PropTypes.func,
+    /**
+     * 是否显示透明背景
+     **/
+    transparent: PropTypes.bool,
 
-    // 蒙版
-    maskOpacity: PropTypes.number,
-    maskClosable: PropTypes.bool,
+    /**
+     * 这里并没有采取官方Modal的animationType，主要是考虑这里重写的Modal饱含了内容区域，而内容区域的位置决定了动画的类型，所以没有办法随意的支持动画类型的配置
+     **/
+    needAnimation: PropTypes.bool,
 
-    // Content的弹性宽度
-    contentFlex: PropTypes.number,
-    contentContainerStyle: View.propTypes.style,
+    /**
+     * 弹窗显示之后执行的回调
+     **/
+    onShow: PropTypes.func,
 
-    // Content在Column方向上的排版
-    alignItems: PropTypes.oneOf(['center', 'flex-start', 'flex-end']),
+    /**
+     * 在弹窗被完全关闭（动画执行完成）之后调用
+     **/
+    onDismiss: PropTypes.func,
 
-    // 根据排版的不同，设置不同的margin属性来预留Content与上（下）屏幕的距离
-    marginTop: PropTypes.number,
-    marginBottom: PropTypes.number, 
+    /**
+     * 在用户按下Android设备上的回退物理键时调用
+     **/
+    onRequestClose: (Platform.isTVOS || Platform.OS === 'android') ?PropTypes.func.isRequired : PropTypes.func,
 
-    // Content在水平方向上与屏幕两边的距离
-    marginHorizontal: PropTypes.number,
+    /**
+     * 自定义属性：蒙版点击是否可以关闭
+     **/
+    closable: PropTypes.bool,
 
-    borderRadius: PropTypes.number,
+    /**
+     * 自定义属性：控制内容容器在Y轴的显示位置，可选类型为：flex-start（顶部显示）、center（居中显示）、flex-end（底部显示）
+     **/
+    alignContent: PropTypes.oneOf(['flex-start', 'center', 'flex-end']),
 
-    animationType: PropTypes.oneOf(['none', 'fade'])
+    /**
+     * 自定义属性：控制内容容器自身的视图样式
+     **/
+    contentContainerStyle: View.propTypes.style
   }
 
   static defaultProps = {
-    maskOpacity: 0.5,
-    maskClosable: false,
-    contentFlex: 0.8,
-    alignItems: 'center',
-    marginTop: 0,
-    marginBottom: 0,
-    marginHorizontal: 0,
-    borderRadius: 0,
-    animationType: 'fade'
+    visible: false,
+    closable: true,
+    transparent: false,
+    needAnimation: true,
+    alignContent: 'center'
   }
 
   constructor(props){
     super(props)
 
     this.state = {
-      contentHeight: 0,
-      isAnimating: false
+      contentHeight: 0
     }
 
-    this.maskAnimatedValue = new Animated.Value(0)
-    this.contentAnimatedValue = new Animated.Value(0)
+    this.modalId = null
+    this.animation = new Animated.Value(0)
+
+    if(Platform.isOSTV || Platform.OS === 'android'){
+      this.handler = BackHandler.addEventListener('hardwareBackPress', props.onRequestClose)
+    }
   }
 
   componentDidMount(){
-    this.props.visible && this.show()
+    if(this.props.visible){
+      this.show()
+    }
   }
 
   componentWillReceiveProps(nextProps){
@@ -86,7 +110,7 @@ class Modal extends Component {
   }
 
   componentDidUpdate(){
-    if(null !== this.modalId) {
+    if(null !== this.modalId){
       RootView.getInstance().update(this.modalId, this.getModal())
     }
   }
@@ -105,83 +129,50 @@ class Modal extends Component {
     if(this.modalId){
       RootView.getInstance().remove(this.modalId)
     }
+
+    if(this.handler){
+      this.handler.remove()
+    }
   }
 
   getModal = () => {
-    const { 
-      maskOpacity, 
-      alignItems, 
-      marginTop, 
-      marginBottom, 
-      borderRadius, 
-      contentFlex,
-      contentContainerStyle,
-      marginHorizontal
+    const {
+      transparent,
+      alignContent,
+      contentContainerStyle
     } = this.props
 
-    const { 
-      contentHeight
-    } = this.state
-
-    const behavior = Platform.OS === 'ios' ? 'position' : null
-
     return (
-      <KeyboardAvoidingView 
-        behavior={behavior}
+      <KeyboardAvoidingView
         style={styles.container}
-        contentContainerStyle={[styles.container, {alignItems}]}>
-
+        behavior={Platform.OS === 'ios' ? 'position' : null}
+        contentContainerStyle={[styles.container, {
+          alignItems: alignContent    
+        }]}>
         <TouchableWithoutFeedback onPress={this.onMaskPress}>
-          <Animated.View style={[
-            styles.mask,
-            {
-              opacity: this.maskAnimatedValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, maskOpacity]
-              })
-            }
-          ]}/>
+          <Animated.View style={[styles.mask, transparent && {
+            backgroundColor: 'rgba(0, 0, 0, 0)'
+          }, {
+            opacity: this.animation
+          }]} />
         </TouchableWithoutFeedback>
 
-        <Animated.View style={[
-          styles.content,
-          contentContainerStyle,
-          {
-            borderRadius,
-            flex: contentFlex,
-            marginTop: alignItems === 'flex-start' ? marginTop : null,
-            marginBottom: alignItems === 'flex-end' ? marginBottom : null,
-            marginHorizontal,
-            opacity: this.contentAnimatedValue.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0.3, 1]
-            }),
-            transform: [{
-              scale: alignItems !== 'center' ? 1 : this.contentAnimatedValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, 1]
-              })
-            }, {
-              translateY: alignItems === 'center' ? 0 : this.contentAnimatedValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [alignItems === 'flex-start' ? - contentHeight : contentHeight, 0]
-              })
-            }]
-          }
-        ]} onLayout={this.measureLayout}>
-          <View style={styles.innerContainer}>
-            {this.props.children}
-          </View>
+        <Animated.View 
+          onLayout={this.measureLayout}
+          style={[styles.content, contentContainerStyle, {
+            opacity: this.animation
+          }, this.getTransformByNeedAnimation()]}>
+        
         </Animated.View>
       </KeyboardAvoidingView>
-    ) 
+    )
   }
 
-  measureLayout = ({ nativeEvent }) => {
+  measureLayout = ({nativeEvent}) => {
     const { height } = nativeEvent.layout
 
-    if(!this.contentHeight) {
-      this.contentHeight = height
+    if(!this._contentHeight) {
+      this._contentHeight = height
 
       this.setState({
         contentHeight: height    
@@ -189,91 +180,88 @@ class Modal extends Component {
     }
   }
 
-  show(){
-    this.maskAnimatedValue.setValue(0)
-    this.contentAnimatedValue.setValue(0)
+  // 根据是否需要动画，返回相关的动画样式
+  getTransformByNeedAnimation(){
+    const {
+      alignContent,
+      needAnimation
+    } = this.props
 
-    if(this.state.isAnimating){
+    const {
+      contentHeight
+    } = this.state
+
+    return needAnimation && {
+      transform: [{
+        scale: alignContent !== 'center' ? 1 : this.animation
+      }, {
+        translateY: alignContent === 'center' ? 0 : this.animation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [
+            alignContent === 'flex-start' ? - contentHeight : contentHeight, 0
+          ]
+        })
+      }]
+    }
+  }
+
+  show = () => {
+    if(this.isAnimating || this.isVisible){
       return
     }
 
-    this.setState({
-      isAnimating: true    
-    })
+    this.isAnimating = true
 
-    RootView.getInstance().append(this.getModal()).then((id) => {
-      this.modalId = id    
-    }).then(() => {
-      this.showAnimation = Animated.parallel([
-        Animated.timing(this.maskAnimatedValue, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-          easing: Easing.easeIn
-        }),
-        Animated.timing(this.contentAnimatedValue, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-          easing: Easing.easeIn
-        })
-      ]).start(() => {
-        this.setState({
-          isAnimating: false    
-        })
+    RootView.getInstance().append(this.getModal()).then(id => {
+      this.modalId = id
 
+      this.showAnimation = Animated.timing(this.animation, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.easeIn
+      }).start(() => {
+        this.isVisible = true
+        this.isAnimating = false
         this.showAnimation = null
+
+        this.props.onShow && this.props.onShow()
       })
     })
   }
 
-  hide(){
-    this.maskAnimatedValue.setValue(1)
-    this.contentAnimatedValue.setValue(1)
-
-    if(this.state.isAnimating){
+  hide = () => {
+    if(this.isAnimating || !this.isVisible){
       return
     }
 
-    this.setState({
-      isAnimating: true
-    })
+    this.isAnimating = true
 
-    this.hideAnimation = Animated.parallel([
-      Animated.timing(this.maskAnimatedValue, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-        easing: Easing.easeOut
-      }),
-      Animated.timing(this.contentAnimatedValue, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-        easing: Easing.easeOut
-      })
-    ]).start(() => {
+    this.hideAnimation = Animated.timing(this.animation, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+      easing: Easing.easeOut
+    }).start(() => {
       RootView.getInstance().remove(this.modalId).then(() => {
-        this.setState({
-          isAnimating: false
-        })
-
+        this.isVisible = false
+        this.isAnimating = false
         this.hideAnimation = null
-      })
+
+        this.props.onDismiss && this.props.onDismiss()
+      })  
     })
   }
 
   onMaskPress = () => {
-    // 通过onClose方法更新props.visible来达到关闭的效果
-    const { maskClosable, onClose } = this.props
-
-    maskClosable && onClose && onClose()
+    if(this.props.closable){
+      this.hide()
+    }
   }
 
   render(){
     return null
   }
-
 }
 
 const styles = StyleSheet.create({
@@ -289,19 +277,19 @@ const styles = StyleSheet.create({
 
   mask: {
     position: 'absolute',
-    width: winWidth,
-    height: winHeight,
-    backgroundColor: '#000'
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, .5)'
   },
 
   content: {
-    overflow: 'hidden',
+    flex: 0.7,
+    minHeight: 42,
+    borderRadius: 4,
     flexDirection: 'row',
     backgroundColor: '#FFF'
-  },
-
-  innerContainer: {
-    flex: 1                  
   }
 })
 
