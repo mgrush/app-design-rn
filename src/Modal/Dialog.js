@@ -1,7 +1,6 @@
 /**
- * 自定义弹窗
+ * 基于自定义Modal开发的弹窗组件
  **/
-
 import React, {
   Component
 } from 'react'
@@ -9,8 +8,8 @@ import React, {
 import {
   Text,
   View,
-  TouchableHighlight,
-  StyleSheet
+  StyleSheet,
+  TouchableHighlight
 } from 'react-native'
 
 import PropTypes from 'prop-types'
@@ -24,45 +23,51 @@ const buttonShape = {
 
 class Dialog extends Component {
   static propTypes = {
+    /**
+     * 是否显示弹窗
+     **/
     visible: PropTypes.bool.isRequired,
-    title: PropTypes.string.isRequired,
+
+    /**
+     * 弹窗显示的标题，通常为字符串，但是也支持传入复杂的Element作为标题
+     **/
+    title: PropTypes.node.isRequired,
       
-    // 按钮的名称以及回调事件设置
+    /**
+     * 固定命名弹窗按钮为取消按钮和确认按钮，用户可以灵活调整显示的文案，但是必须设置点击事件处理函数
+     **/
     cancelButton: PropTypes.shape(buttonShape).isRequired,
     confirmButton: PropTypes.shape(buttonShape).isRequired,
 
-    // 通过Flex和横向外间距共同决定宽度
-    contentFlex: PropTypes.number,
-    marginHorizontal: PropTypes.number
-  }
-
-  static defaultProps = {
-    contentFlex: 0.7,
-    marginHorizontal: 0
+    /**
+     * 内容显示容器自身的样式设置
+     **/
+    contentContainerStyle: View.propTypes.style
   }
 
   render(){
     const {
-      visible,
       title,
-      contentFlex,
-      marginHorizontal
+      visible,
+      contentContainerStyle
     } = this.props
 
     return (
       <Modal 
-        borderRadius={6}
         visible={visible}
-        maskClosable={false}
-        alignItems={'center'}
-        contentFlex={contentFlex}
-        marginHorizontal={marginHorizontal}>
+        alignContent='center'
+        contentContainerStyle={contentContainerStyle} {...this.props} >
+
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>{title}</Text>
+          {React.isValidElement(title) ? title : (
+            <Text style={styles.title}>{title}</Text>
+          )}
         </View>
+
         <View style={styles.content}>
           {this.props.children}              
         </View>
+
         <View style={styles.footer}>
           <FooterButton type='cancel' {...this.getButtonProps('cancel')} />
           <FooterButton type='confirm' {...this.getButtonProps('confirm')} />
