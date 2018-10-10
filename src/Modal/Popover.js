@@ -25,58 +25,59 @@ const winWidth = Dimensions.get('window').width
 
 class Popover extends Component {
   static propTypes = {
-    // 默认显示的内容，如：Ellipsis图标等
+    /**
+     * 默认显示的内容，如：Ellipsis图标等
+     **/
     children: PropTypes.node.isRequired,
 
-    // 容器的自定义样式
-    contentStyle: View.propTypes.style,
+    /**
+     * 容器的自定义样式
+     **/
+    contentContainerStyle: View.propTypes.style,
 
-    // 悬浮弹窗相对于内容节点的位置
+    /**
+     * 悬浮弹窗相对于内容节点的位置
+     **/
     position: PropTypes.oneOf(['left', 'right', 'top', 'bottom']),
 
-    // 数据项目列表
+    /**
+     * 数据项目列表
+     **/
     itemList: PropTypes.array.isRequired,
 
-    // 每一项数据的渲染方法
+    /**
+     * 每一项数据的渲染方法
+     **/
     renderItem: PropTypes.func.isRequired,
 
-    // 用户点击事件
+    /**
+     * 用户点击事件
+     **/
     onPress: PropTypes.func.isRequired
   }
 
   static defaultProps = {
-    position: 'bottom',
-    itemList: [{
-      name: '扫一扫'
-    }, {
-      name: '扫一扫2'
-    }],
-    renderItem: (item, index) => {
-      return (
-        <Text>{item.name}</Text>
-      )            
-    },
-    onPress: (item) => console.warn(item.name)
+    position: 'bottom'
   }
 
   constructor(props){
     super(props)
 
     this.state = {
-      // 标记悬浮弹窗的坐标
-      droguePosi: null,
-                  
       // 是否显示弹窗
-      visible: false
+      visible: false,
+
+      // 标记悬浮弹窗的坐标
+      droguePosi: null
     }
   }
 
   render(){
     const {
-      contentStyle,
       position,
       itemList,
-      renderItem
+      renderItem,
+      contentContainerStyle
     } = this.props
 
     const {
@@ -85,21 +86,18 @@ class Popover extends Component {
     } = this.state
 
     return (
-      <View style={[styles.container, contentStyle]}>
+      <View style={[styles.container, contentContainerStyle]}>
         <TouchableOpacity 
           activeOpacity={0.5} 
           onPress={this.onDroguePress} 
-          style={{backgroundColor: 'green'}}
           onLayout={this.onDrogueLayout}>
           {this.props.children} 
         </TouchableOpacity>
 
         <Modal 
           visible={visible} 
-          contentFlex={0.4}
-          maskClosable={true}
-          borderRadius={4} 
           onClose={this.hide}
+          needAnimation={false}
           contentContainerStyle={[
             styles.contentContainerStyle,
             droguePosi
@@ -168,13 +166,15 @@ class Popover extends Component {
       position
     } = this.props
 
+    const offset = 15
+
     NativeModules.UIManager.measure(target, (x, y, width, height, pageX, pageY) => {
       switch(position){
         case 'bottom':
           return this.setState({
             droguePosi: {
               left: pageX,
-              top: pageY + height + 16
+              top: pageY + height + offset
             }    
           })
 
@@ -182,7 +182,7 @@ class Popover extends Component {
           return this.setState({
             droguePosi: {
               left: pageX,
-              bottom: winHeight - (pageY - 16)
+              bottom: winHeight - (pageY - offset)
             }
           })
 
@@ -190,7 +190,7 @@ class Popover extends Component {
           return this.setState({
             droguePosi: {
               top: pageY,
-              right: winWidth - (pageX - 16)
+              right: winWidth - (pageX - offset)
             }
           })
 
@@ -198,7 +198,7 @@ class Popover extends Component {
           return this.setState({
             droguePosi: {
               top: pageY,
-              left: pageX + width + 16
+              left: pageX + width + offset
             }    
           })
       }
@@ -220,6 +220,8 @@ const styles = StyleSheet.create({
 
   contentContainerStyle: {
     minWidth: 120,
+    flex: 0.4,
+    borderRadius: 4,
     overflow: 'visible',
     position: 'absolute'
   },
