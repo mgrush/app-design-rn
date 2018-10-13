@@ -47,7 +47,7 @@ class SlideUIAnimation extends PureComponent {
     /**
      * Slide动画的执行方向
      **/
-    translateDirection: PropTypes.oneOf([
+    slideDirection: PropTypes.oneOf([
       SLIDE_FROM_LEFT,
       SLIDE_FROM_RIGHT,
       SLIDE_FROM_TOP,
@@ -68,16 +68,21 @@ class SlideUIAnimation extends PureComponent {
      * 完全显示或者完全隐藏时，执行相关的回调
      **/
     onShow: PropTypes.func,
-    onHide: PropTypes.func
+    onHide: PropTypes.func,
+
+    /**
+     * 动画容器组件的自定义样式
+     **/
+    style: Animated.View.propTypes.style
   }
 
   static defaultProps = {
     visible: false,
     minOpacity: 0,
     translateOffset: 0,
-    duration: 300,
-    animateOnDidMount: false,
-    translateDirection: SLIDE_FROM_BOTTOM
+    duration: 180,
+    animateOnDidMount: true,
+    slideDirection: SLIDE_FROM_BOTTOM
   }
 
   constructor(props){
@@ -93,8 +98,6 @@ class SlideUIAnimation extends PureComponent {
 
     this.opacityValue = new Animated.Value(0)
     this.translateValue = new Animated.Value(0)
-
-    //this.opacityValue = new Animated.Value(visible && !animateOnDidMount ? 1 : minOpacity)
   }
 
   componentWillReceiveProps(nextProps){
@@ -200,10 +203,10 @@ class SlideUIAnimation extends PureComponent {
   getHiddenPosition = () => {
     const {
       translateOffset,
-      translateDirection
+      slideDirection
     } = this.props
 
-    switch(translateDirection){
+    switch(slideDirection){
       case SLIDE_FROM_LEFT:
         return -(this.measureContent.pageX + this.measureContent.width) + translateOffset
 
@@ -222,16 +225,17 @@ class SlideUIAnimation extends PureComponent {
 
   render(){
     const {
-      translateDirection
+      style,
+      slideDirection
     } = this.props
 
     return (
-      <Animated.View style={{
+      <Animated.View style={[{
         opacity: this.opacityValue,
         transform: [{
-          [[SLIDE_FROM_TOP, SLIDE_FROM_BOTTOM].includes(translateDirection) ? 'translateY' : 'translateX']: this.translateValue
+          [[SLIDE_FROM_TOP, SLIDE_FROM_BOTTOM].includes(slideDirection) ? 'translateY' : 'translateX']: this.translateValue
         }]
-      }} onLayout={this.measureLayout}>{this.props.children}</Animated.View> 
+      }, style]} onLayout={this.measureLayout}>{this.props.children}</Animated.View> 
     )
   }
 
@@ -251,7 +255,7 @@ class SlideUIAnimation extends PureComponent {
 
       if(visible){
         if(animateOnDidMount){
-          InteractionManager.runAfterInteractions(() => this.show())
+          this.show()
         }else {
           this.setSlideAnimatedValue(false)
         }

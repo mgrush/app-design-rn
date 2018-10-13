@@ -41,15 +41,20 @@ class FadeUIAnimation extends PureComponent {
      * 完全显示或者完全隐藏时，执行相关的回调
      **/
     onShow: PropTypes.func,
-    onHide: PropTypes.func
+    onHide: PropTypes.func,
+
+    /**
+     * 动画容器组件的自定义样式
+     **/
+    style: Animated.View.propTypes.style
   }
 
   static defaultProps = {
     visible: false,
     minOpacity: 0,
     minScale: 0,
-    duration: 300,
-    animateOnDidMount: false
+    duration: 180,
+    animateOnDidMount: true
   }
 
   constructor(props){
@@ -71,7 +76,7 @@ class FadeUIAnimation extends PureComponent {
     } = this.props
 
     if(visible && animateOnDidMount){
-      InteractionManager.runAfterInteractions(() => this.show())
+      this.show()
     }
   }
 
@@ -156,12 +161,12 @@ class FadeUIAnimation extends PureComponent {
 
   render(){
     return (
-      <Animated.View style={{
+      <Animated.View style={[{
         opacity: this.opacityValue,
         transform: [{
           scale: this.scaleValue
         }]
-      }}>{this.props.children}</Animated.View> 
+      }, this.props.style]}>{this.props.children}</Animated.View> 
     )
   }
 }
