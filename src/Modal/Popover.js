@@ -17,7 +17,6 @@ import {
 } from 'react-native'
 
 import Modal from './Modal'
-
 import PropTypes from 'prop-types'
 
 const winHeight = Dimensions.get('window').height
@@ -97,7 +96,6 @@ class Popover extends Component {
         <Modal 
           visible={visible} 
           onClose={this.hide}
-          needAnimation={false}
           contentContainerStyle={[
             styles.contentContainerStyle,
             droguePosi

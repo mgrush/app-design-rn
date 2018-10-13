@@ -36,6 +36,11 @@ class Modal extends Component {
     visible: PropTypes.bool.isRequired,
 
     /**
+     * 动画时长
+     **/
+    duration: PropTypes.number,
+
+    /**
      * 弹窗显示之后执行的回调
      **/
     onShow: PropTypes.func,
@@ -105,6 +110,7 @@ class Modal extends Component {
   getModal = (props) => {
     const {
       visible,
+      duration,
       alignContent,
       contentContainerStyle
     } = props
@@ -122,13 +128,15 @@ class Modal extends Component {
           style={styles.container} 
           onPress={this.onMaskPress}>
           <OpacityUIAnimation 
-            style={styles.mask} 
-            visible={visible} />
+            visible={visible}
+            style={styles.mask}
+            duration={duration} />
         </TouchableOpacity>
 
         {alignContent === 'center' ? (
           <FadeUIAnimation
             visible={visible}
+            duration={duration}
             onHide={this.onAnimationFinished}
             style={[styles.content, contentContainerStyle]}>
             <View style={styles.innerContent}>
@@ -138,6 +146,7 @@ class Modal extends Component {
         ) : (
           <SlideUIAnimation
             visible={visible}
+            duration={duration}
             slideDirection={alignContent === 'flex-start' ? 'top' : 'bottom'}
             onHide={this.onAnimationFinished}
             style={[styles.content, contentContainerStyle]}>
