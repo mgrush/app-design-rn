@@ -1,0 +1,13 @@
+.DS_Store
+.vscode/
+.idea/
+wax-debug.log
+build/
+.wax/
+android/example/src/main/assets/index.android.*
+android/example/src/main/res/drawable-*/node_modules_*
+android/example/src/main/res/drawable-*/src_*
+android/app/bin/
+ios/bundle
+rn/ios/bundle
+ios/LoanRepayPlanExample.xcworkspace/xcshareddata/
