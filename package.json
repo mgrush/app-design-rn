@@ -1,0 +1,28 @@
+{
+  "name": "app-design-rn",
+  "version": "0.0.1",
+  "description": "专注移动端React Native组件库设计实现",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mgrush/app-design-rn.git"
+  },
+  "keywords": [
+    "react",
+    "native",
+    "ui",
+    "react"
+  ],
+  "author": "programmer.mgrush@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mgrush/app-design-rn/issues"
+  },
+  "homepage": "https://github.com/mgrush/app-design-rn#readme"
+}
