@@ -10,3 +10,6 @@ export { default as Popover } from './src/Modal/Popover'
 export { default as OpacityUIAnimation } from './src/UIAnimation/OpacityUIAnimation'
 export { default as FadeUIAnimation } from './src/UIAnimation/FadeUIAnimation'
 export { default as SlideUIAnimation } from './src/UIAnimation/SlideUIAnimation'
+
+// 页面刷新
+export { default as RefreshControl } from './src/RefreshControl'
